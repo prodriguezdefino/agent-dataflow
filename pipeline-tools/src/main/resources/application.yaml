@@ -1,0 +1,12 @@
+spring:
+    ai:
+        mcp:
+            server:
+                name: dataflow-tools
+                version: @project.version@
+                type: ASYNC
+                capabilities:
+                  tool: true
+                  resource: false
+                  prompt: false
+                  completion: false  
