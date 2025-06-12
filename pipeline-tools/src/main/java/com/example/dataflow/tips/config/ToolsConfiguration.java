@@ -15,8 +15,10 @@
  */
 package com.example.dataflow.tips.config;
 
+import com.example.dataflow.tips.mcp.server.tools.PipelineMetricsService;
 import com.example.dataflow.tips.mcp.server.tools.PipelineTopologyService;
 import com.google.dataflow.v1beta3.JobsV1Beta3Client;
+import com.google.dataflow.v1beta3.MetricsV1Beta3Client;
 import java.io.IOException;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
@@ -28,12 +30,20 @@ import org.springframework.context.annotation.Configuration;
 public class ToolsConfiguration {
 
   @Bean
-  public ToolCallbackProvider pipelineTopology(PipelineTopologyService topologyService) {
-    return MethodToolCallbackProvider.builder().toolObjects(topologyService).build();
+  public ToolCallbackProvider pipelineTopology(
+      PipelineTopologyService topologyService, PipelineMetricsService metricsService) {
+    return MethodToolCallbackProvider.builder()
+        .toolObjects(topologyService, metricsService)
+        .build();
   }
 
   @Bean
   public JobsV1Beta3Client jobsClient() throws IOException {
     return JobsV1Beta3Client.create();
+  }
+
+  @Bean
+  public MetricsV1Beta3Client metricsClient() throws IOException {
+    return MetricsV1Beta3Client.create();
   }
 }

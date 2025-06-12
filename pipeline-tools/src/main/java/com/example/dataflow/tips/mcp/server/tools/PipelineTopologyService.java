@@ -15,6 +15,8 @@
  */
 package com.example.dataflow.tips.mcp.server.tools;
 
+import static com.example.dataflow.tips.common.Utils.execute;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.dataflow.v1beta3.GetJobRequest;
 import com.google.dataflow.v1beta3.JobView;
@@ -25,8 +27,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -35,35 +35,17 @@ import org.springframework.stereotype.Service;
 /** */
 @Service
 public class PipelineTopologyService {
-
-  private static final Logger LOG = LoggerFactory.getLogger(PipelineTopologyService.class);
-
   private final JobsV1Beta3Client jobsClient;
 
   public PipelineTopologyService(JobsV1Beta3Client jobsClient) {
     this.jobsClient = jobsClient;
   }
 
-  @FunctionalInterface
-  interface CheckedSupplier<T> {
-    T apply() throws Exception;
-  }
-
-  static <T> T execute(CheckedSupplier<T> toExecute, String errorMessage, Object... errorArgs) {
-    try {
-      var result = toExecute.apply();
-      LOG.debug("Completed tool execution: " + result.toString());
-      return result;
-    } catch (Exception ex) {
-      String msg = String.format(errorMessage, errorArgs);
-      LOG.error(msg, ex);
-      throw new RuntimeException(msg, ex);
-    }
-  }
-
   @Tool(
       name = "Job Details",
-      description = "Get Dataflow's job detailed information, including all the composite states.")
+      description =
+          "Get Dataflow's job detailed information, including topology structure, stages, "
+              + "types, metadata, experiments in use.")
   public String jobDetails(
       @ToolParam(description = "Job's GCP project identifier.") String projectId,
       @ToolParam(description = "Job's GCP region identifier.") String regionId,
@@ -101,7 +83,9 @@ public class PipelineTopologyService {
                         .listJobs(
                             ListJobsRequest.getDefaultInstance().toBuilder()
                                 .setProjectId(projectId.trim())
+                                .setPageSize(10)
                                 .build())
+                        .getPage()
                         .iterateAll()
                         .spliterator(),
                     false)
@@ -135,7 +119,9 @@ public class PipelineTopologyService {
                             ListJobsRequest.getDefaultInstance().toBuilder()
                                 .setProjectId(projectId.trim())
                                 .setLocation(regionId.trim())
+                                .setPageSize(10)
                                 .build())
+                        .getPage()
                         .iterateAll()
                         .spliterator(),
                     false)
@@ -173,7 +159,9 @@ public class PipelineTopologyService {
                                 .setProjectId(projectId.trim())
                                 .setLocation(regionId.trim())
                                 .setName(name.trim())
+                                .setPageSize(10)
                                 .build())
+                        .getPage()
                         .iterateAll()
                         .spliterator(),
                     false)
