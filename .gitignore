@@ -25,3 +25,7 @@ replay_pid*
 /target/
 /pipeline-topology/target/
 /pipeline-tools/target/
+/agent/target/
+
+.DS_Store
+

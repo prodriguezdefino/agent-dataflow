@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,9 @@ public class PipelineTopologyService {
 
   static <T> T execute(CheckedSupplier<T> toExecute, String errorMessage, Object... errorArgs) {
     try {
-      return toExecute.apply();
+      var result = toExecute.apply();
+      LOG.debug("Completed tool execution: " + result.toString());
+      return result;
     } catch (Exception ex) {
       String msg = String.format(errorMessage, errorArgs);
       LOG.error(msg, ex);
@@ -64,10 +67,13 @@ public class PipelineTopologyService {
   public String jobDetails(
       @ToolParam(description = "Job's GCP project identifier.") String projectId,
       @ToolParam(description = "Job's GCP region identifier.") String regionId,
-      @ToolParam(description = "Job's identifier.") String jobId) {
+      @ToolParam(description = "Job's identifier.") String jobId,
+      ToolContext context) {
     return execute(
         () ->
             JsonFormat.printer()
+                .sortingMapKeys()
+                .omittingInsignificantWhitespace()
                 .print(
                     jobsClient.getJob(
                         GetJobRequest.getDefaultInstance().toBuilder()
@@ -86,7 +92,8 @@ public class PipelineTopologyService {
       name = "Job List For Project",
       description = "Get Dataflow's jobs executed in a GCP project.")
   public List<Pipeline> pipelines(
-      @ToolParam(description = "Pipelines GCP project identifier.") String projectId) {
+      @ToolParam(description = "Pipelines GCP project identifier.") String projectId,
+      ToolContext context) {
     return execute(
         () ->
             StreamSupport.stream(
@@ -118,7 +125,8 @@ public class PipelineTopologyService {
       description = "Get Dataflow's jobs executed in a GCP project and region.")
   public List<Pipeline> pipelines(
       @ToolParam(description = "Job's GCP project identifier.") String projectId,
-      @ToolParam(description = "Job's GCP region identifier.") String regionId) {
+      @ToolParam(description = "Job's GCP region identifier.") String regionId,
+      ToolContext context) {
     return execute(
         () ->
             StreamSupport.stream(
@@ -154,7 +162,8 @@ public class PipelineTopologyService {
   public List<Pipeline> pipelines(
       @ToolParam(description = "Job's GCP project identifier.") String projectId,
       @ToolParam(description = "Job's GCP region identifier.") String regionId,
-      @ToolParam(description = "Job's exact name.") String name) {
+      @ToolParam(description = "Job's exact name.") String name,
+      ToolContext context) {
     return execute(
         () ->
             StreamSupport.stream(

@@ -1,4 +1,10 @@
+logging:
+    level:
+        org.springframework.ai: INFO
 spring:
+    threads:
+        virtual:
+            enabled: true
     ai:
         mcp:
             server:
@@ -10,3 +16,14 @@ spring:
                   resource: false
                   prompt: false
                   completion: false  
+# Server port (useful for local testing, GCP Cloud Functions can use this as well)
+server:
+    port: 8081
+management:
+    endpoints:
+        web:
+            exposure:
+                include: health,info
+    endpoint:
+        health:
+            show-details: always
