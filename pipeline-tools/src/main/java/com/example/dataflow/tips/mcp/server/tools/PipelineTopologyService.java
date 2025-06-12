@@ -21,6 +21,7 @@ import com.google.dataflow.v1beta3.JobView;
 import com.google.dataflow.v1beta3.JobsV1Beta3Client;
 import com.google.dataflow.v1beta3.ListJobsRequest;
 import com.google.protobuf.util.JsonFormat;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
@@ -105,7 +106,8 @@ public class PipelineTopologyService {
                             job.getProjectId(),
                             job.getLocation(),
                             job.getType().toString(),
-                            job.getCurrentState().toString()))
+                            job.getCurrentState().toString(),
+                            Instant.ofEpochSecond(job.getStartTime().getSeconds())))
                 .toList(),
         "Error while retrieving pipelines for project: %s",
         projectId);
@@ -137,7 +139,8 @@ public class PipelineTopologyService {
                             job.getProjectId(),
                             job.getLocation(),
                             job.getType().toString(),
-                            job.getCurrentState().toString()))
+                            job.getCurrentState().toString(),
+                            Instant.ofEpochSecond(job.getStartTime().getSeconds())))
                 .toList(),
         "Error while retrieving pipelines for project: %s on region %s",
         projectId,
@@ -173,7 +176,8 @@ public class PipelineTopologyService {
                             job.getProjectId(),
                             job.getLocation(),
                             job.getType().toString(),
-                            job.getCurrentState().toString()))
+                            job.getCurrentState().toString(),
+                            Instant.ofEpochSecond(job.getStartTime().getSeconds())))
                 .toList(),
         "Error while retrieving pipelines for project: %s on region %s with name %s",
         projectId,
@@ -189,12 +193,20 @@ public class PipelineTopologyService {
       String id,
       String type,
       String state,
+      Instant startTime,
       List<String> experiments,
       List<String> options,
       Map<String, Object> stages) {
 
-    Pipeline(String name, String id, String project, String region, String type, String state) {
-      this(name, id, project, region, type, state, null, null, null);
+    Pipeline(
+        String name,
+        String id,
+        String project,
+        String region,
+        String type,
+        String state,
+        Instant startTime) {
+      this(name, id, project, region, type, state, startTime, null, null, null);
     }
   }
 }
