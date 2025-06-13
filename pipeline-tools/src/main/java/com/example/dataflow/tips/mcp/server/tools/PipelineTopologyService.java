@@ -18,14 +18,16 @@ package com.example.dataflow.tips.mcp.server.tools;
 import static com.example.dataflow.tips.common.Utils.execute;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.google.dataflow.v1beta3.DisplayData;
 import com.google.dataflow.v1beta3.GetJobRequest;
 import com.google.dataflow.v1beta3.JobView;
 import com.google.dataflow.v1beta3.JobsV1Beta3Client;
 import com.google.dataflow.v1beta3.ListJobsRequest;
-import com.google.protobuf.util.JsonFormat;
+import com.google.dataflow.v1beta3.TransformSummary;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
@@ -46,24 +48,37 @@ public class PipelineTopologyService {
       description =
           "Get Dataflow's job detailed information, including topology structure, stages, "
               + "types, metadata, experiments in use.")
-  public String jobDetails(
+  public Pipeline jobDetails(
       @ToolParam(description = "Job's GCP project identifier.") String projectId,
       @ToolParam(description = "Job's GCP region identifier.") String regionId,
       @ToolParam(description = "Job's identifier.") String jobId,
       ToolContext context) {
     return execute(
-        () ->
-            JsonFormat.printer()
-                .sortingMapKeys()
-                .omittingInsignificantWhitespace()
-                .print(
-                    jobsClient.getJob(
-                        GetJobRequest.getDefaultInstance().toBuilder()
-                            .setJobId(jobId.trim())
-                            .setProjectId(projectId.trim())
-                            .setLocation(regionId.trim())
-                            .setView(JobView.JOB_VIEW_ALL)
-                            .build())),
+        () -> {
+          var job =
+              jobsClient.getJob(
+                  GetJobRequest.getDefaultInstance().toBuilder()
+                      .setJobId(jobId.trim())
+                      .setProjectId(projectId.trim())
+                      .setLocation(regionId.trim())
+                      .setView(JobView.JOB_VIEW_ALL)
+                      .build());
+          return new Pipeline(
+              job.getName(),
+              job.getProjectId(),
+              job.getLocation(),
+              job.getId(),
+              job.getType().toString(),
+              job.getCurrentState().toString(),
+              Instant.ofEpochSecond(job.getStartTime().getSeconds()),
+              job.getEnvironment().getExperimentsList(),
+              job.getEnvironment().getWorkerPoolsList().stream()
+                  .findFirst()
+                  .map(wp -> wp.getMachineType())
+                  .orElse("NA"),
+              toTransform(job.getPipelineDescription().getOriginalPipelineTransformList()),
+              toDisplayData(job.getPipelineDescription().getDisplayDataList()));
+        },
         "Error while retrieving information for job id: %s, project: %s, region: %s",
         jobId,
         projectId,
@@ -93,9 +108,9 @@ public class PipelineTopologyService {
                     job ->
                         new Pipeline(
                             job.getName(),
-                            job.getId(),
                             job.getProjectId(),
                             job.getLocation(),
+                            job.getId(),
                             job.getType().toString(),
                             job.getCurrentState().toString(),
                             Instant.ofEpochSecond(job.getStartTime().getSeconds())))
@@ -129,9 +144,9 @@ public class PipelineTopologyService {
                     job ->
                         new Pipeline(
                             job.getName(),
-                            job.getId(),
                             job.getProjectId(),
                             job.getLocation(),
+                            job.getId(),
                             job.getType().toString(),
                             job.getCurrentState().toString(),
                             Instant.ofEpochSecond(job.getStartTime().getSeconds())))
@@ -169,9 +184,9 @@ public class PipelineTopologyService {
                     job ->
                         new Pipeline(
                             job.getName(),
-                            job.getId(),
                             job.getProjectId(),
                             job.getLocation(),
+                            job.getId(),
                             job.getType().toString(),
                             job.getCurrentState().toString(),
                             Instant.ofEpochSecond(job.getStartTime().getSeconds())))
@@ -181,6 +196,41 @@ public class PipelineTopologyService {
         regionId,
         name);
   }
+
+  List<Transform> toTransform(List<TransformSummary> summaries) {
+    return summaries.stream()
+        .map(
+            t ->
+                new Transform(
+                    t.getKind().name(),
+                    t.getId(),
+                    t.getName(),
+                    toDisplayData(t.getDisplayDataList()),
+                    t.getOutputCollectionNameList(),
+                    t.getInputCollectionNameList()))
+        .toList();
+  }
+
+  List<Map<String, String>> toDisplayData(List<DisplayData> displayData) {
+    return displayData.stream()
+        .map(
+            d ->
+                d.getAllFields().entrySet().stream()
+                    .collect(
+                        Collectors.toMap(
+                            entry -> entry.getKey().getFullName(),
+                            entry -> entry.getValue().toString())))
+        .toList();
+  }
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public record Transform(
+      String kind,
+      String id,
+      String name,
+      List<Map<String, String>> displayData,
+      List<String> outputCollectionNames,
+      List<String> inputCollectionNames) {}
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public record Pipeline(
@@ -192,18 +242,19 @@ public class PipelineTopologyService {
       String state,
       Instant startTime,
       List<String> experiments,
-      List<String> options,
-      Map<String, Object> stages) {
+      String machineType,
+      List<Transform> transforms,
+      List<Map<String, String>> displayData) {
 
     Pipeline(
         String name,
-        String id,
         String project,
         String region,
+        String id,
         String type,
         String state,
         Instant startTime) {
-      this(name, id, project, region, type, state, startTime, null, null, null);
+      this(name, project, region, id, type, state, startTime, null, null, null, null);
     }
   }
 }
