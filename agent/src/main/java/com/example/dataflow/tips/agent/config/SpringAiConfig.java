@@ -20,16 +20,20 @@ import io.modelcontextprotocol.client.McpAsyncClient;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.transport.WebFluxSseClientTransport;
 import io.modelcontextprotocol.spec.McpSchema;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.mcp.client.autoconfigure.NamedClientMcpTransport;
 import org.springframework.ai.mcp.client.autoconfigure.properties.McpClientCommonProperties;
 import org.springframework.ai.mcp.client.autoconfigure.properties.McpSseClientProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.Resource;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /** */
@@ -37,23 +41,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 @EnableConfigurationProperties({McpClientCommonProperties.class, McpSseClientProperties.class})
 public class SpringAiConfig {
 
-  private final String systemText =
-      """
-      You are an AI assistant helping people to troubleshoot their GCP Dataflow Apache Beam pipelines and jobs,
-      using the configured tools to search for particular pipelines,
-      understand its structure and composing stages (like sources, sinks and aggregations), analyze their metrics and
-      map the potential problems found by looking at the execution metrics and transformations to the knowledge base for known best practices.
-      Be very succint on the responses, focusing on the users ask and provide links to public documentation when available.
-      Everytime you prepare or process data for/from your tool's interactions make sure to consider the supported formats:
-      - dates and datetimes are in ISO format.
-      - SystemWatermark, the maximum time marker of data that is awaiting for processing, is expressed as microseconds since epoch in UTC.
-      - SystemLag, the number of microseconds that an item of data has been processing or waiting inside any one pipeline source.
-      - DataLag, The number of microseconds since the most recent watermark.
-      """;
+  @Value("classpath:system-prompt.txt")
+  private Resource systemPromptResource;
 
   @Bean
-  public SystemPromptTemplate initSystemTemplate() {
-    return new SystemPromptTemplate(systemText);
+  public SystemPromptTemplate initSystemTemplate() throws IOException {
+    return new SystemPromptTemplate(
+        systemPromptResource.getContentAsString(Charset.defaultCharset()));
   }
 
   @Bean
