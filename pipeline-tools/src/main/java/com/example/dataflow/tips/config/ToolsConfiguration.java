@@ -15,6 +15,7 @@
  */
 package com.example.dataflow.tips.config;
 
+import com.example.dataflow.tips.mcp.server.tools.KnowledgeService;
 import com.example.dataflow.tips.mcp.server.tools.PipelineMetricsService;
 import com.example.dataflow.tips.mcp.server.tools.PipelineTopologyService;
 import com.google.dataflow.v1beta3.JobsV1Beta3Client;
@@ -31,9 +32,11 @@ public class ToolsConfiguration {
 
   @Bean
   public ToolCallbackProvider pipelineTopology(
-      PipelineTopologyService topologyService, PipelineMetricsService metricsService) {
+      PipelineTopologyService topologyService,
+      PipelineMetricsService metricsService,
+      KnowledgeService knowService) {
     return MethodToolCallbackProvider.builder()
-        .toolObjects(topologyService, metricsService)
+        .toolObjects(topologyService, metricsService, knowService)
         .build();
   }
 

@@ -1,7 +1,7 @@
 logging:
     level:
         org.springframework.ai: INFO
-        com.example.dataflow.tips.mcp.server: DEBUG
+        com.example.dataflow.tips.common: DEBUG
 spring:
     threads:
         virtual:

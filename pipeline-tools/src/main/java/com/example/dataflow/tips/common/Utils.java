@@ -15,6 +15,7 @@
  */
 package com.example.dataflow.tips.common;
 
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,27 +35,32 @@ public class Utils {
     T apply(R param) throws Exception;
   }
 
-  public static <T> T execute(
-      CheckedSupplier<T> toExecute, String errorMessage, Object... errorArgs) {
+  public static <T> T execute(CheckedSupplier<T> toExecute, String errorMessage, Object... args) {
     try {
       var result = toExecute.apply();
-      LOG.info("Completed execution: " + result.toString());
+      LOG.debug(
+          "Completed execution with params {}, result: {}",
+          Arrays.toString(args),
+          result.toString());
       return result;
     } catch (Exception ex) {
-      String msg = String.format(errorMessage, errorArgs);
+      String msg = String.format(errorMessage, args);
       LOG.error(msg, ex);
       throw new RuntimeException(msg, ex);
     }
   }
 
   public static <R, T> T execute(
-      CheckedFunction<R, T> toExecute, R param, String errorMessage, Object... errorArgs) {
+      CheckedFunction<R, T> toExecute, R param, String errorMessage, Object... args) {
     try {
       var result = toExecute.apply(param);
-      LOG.info("Completed execution: " + result.toString());
+      LOG.debug(
+          "Completed execution with params {}, result: {}",
+          Arrays.toString(args),
+          result.toString());
       return result;
     } catch (Exception ex) {
-      String msg = String.format(errorMessage, errorArgs);
+      String msg = String.format(errorMessage, args);
       LOG.error(msg, ex);
       throw new RuntimeException(msg, ex);
     }
