@@ -47,15 +47,16 @@ public class AgentResource {
                             ServerResponse.ok()
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .bodyValue(
-                                    new Response(response.stream().collect(Collectors.joining()))))
+                                    new Response(
+                                        body.q(), response.stream().collect(Collectors.joining()))))
                     .onErrorResume(
                         ex ->
                             ServerResponse.status(HttpStatusCode.valueOf(500))
-                                .bodyValue(new Response(ex.getMessage()))))
+                                .bodyValue(new Response(body.q(), ex.getMessage()))))
         .switchIfEmpty(ServerResponse.badRequest().build());
   }
 
   record Request(String q) {}
 
-  record Response(String a) {}
+  record Response(String q, String a) {}
 }
