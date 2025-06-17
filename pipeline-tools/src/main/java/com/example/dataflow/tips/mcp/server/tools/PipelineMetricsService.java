@@ -17,11 +17,20 @@ package com.example.dataflow.tips.mcp.server.tools;
 
 import static com.example.dataflow.tips.common.Utils.execute;
 
+import com.google.cloud.monitoring.v3.MetricServiceClient;
 import com.google.dataflow.v1beta3.GetJobMetricsRequest;
 import com.google.dataflow.v1beta3.MetricsV1Beta3Client;
+import com.google.monitoring.v3.Aggregation;
+import com.google.monitoring.v3.ListTimeSeriesRequest;
+import com.google.monitoring.v3.ProjectName;
+import com.google.monitoring.v3.TimeInterval;
+import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.JsonFormat;
+import com.google.protobuf.util.Timestamps;
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.StreamSupport;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -31,15 +40,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class PipelineMetricsService {
   private final MetricsV1Beta3Client metricsClient;
+  private final MetricServiceClient gcpMetricsClient;
 
-  public PipelineMetricsService(MetricsV1Beta3Client metricsClient) {
+  public PipelineMetricsService(
+      MetricsV1Beta3Client metricsClient, MetricServiceClient gcpMetricsClient) {
     this.metricsClient = metricsClient;
+    this.gcpMetricsClient = gcpMetricsClient;
   }
 
   @Tool(
-      name = "All Job metrics",
+      name = "Job metrics",
       description =
-          "Get all the metrics for the  Dataflow's job, this is a costly operation. "
+          "Get the metrics for the Dataflow's job. "
               + "If the job is not running it may come back with empty results.")
   public String allJobMetrics(
       @ToolParam(description = "Job's GCP project identifier.") String projectId,
@@ -68,4 +80,63 @@ public class PipelineMetricsService {
         projectId,
         regionId);
   }
+
+  @Tool(
+      name = "Job Workers CPU metrics",
+      description =
+          "Retrieves the CPU utilization metrics for all the current workers for the job.")
+  public List<WorkerCpuUtilization> workerCpuUtilizationInternal(
+      @ToolParam(description = "Job's GCP project identifier.") String projectId,
+      @ToolParam(description = "Job's identifier.") String dataflowJobId,
+      ToolContext context) {
+    var timeInSecs = 300;
+    return execute(
+        () ->
+            StreamSupport.stream(
+                    gcpMetricsClient
+                        .listTimeSeries(
+                            ListTimeSeriesRequest.newBuilder()
+                                .setName(ProjectName.of(projectId).toString())
+                                .setFilter(
+                                    String.format(
+                                        "metric.type = \"compute.googleapis.com/instance/cpu/utilization\" AND "
+                                            + "metadata.user_labels.dataflow_job_id = \"%s\"",
+                                        dataflowJobId))
+                                .setInterval(
+                                    TimeInterval.newBuilder()
+                                        .setStartTime(
+                                            Timestamps.fromMillis(
+                                                Instant.now()
+                                                    .minusSeconds(timeInSecs)
+                                                    .toEpochMilli()))
+                                        .setEndTime(
+                                            Timestamps.fromMillis(Instant.now().toEpochMilli()))
+                                        .build())
+                                .setAggregation(
+                                    Aggregation.newBuilder()
+                                        .setAlignmentPeriod(
+                                            Duration.newBuilder().setSeconds(timeInSecs).build())
+                                        .setPerSeriesAligner(Aggregation.Aligner.ALIGN_MEAN)
+                                        .build())
+                                .setView(ListTimeSeriesRequest.TimeSeriesView.FULL)
+                                .build())
+                        .iterateAll()
+                        .spliterator(),
+                    false)
+                .flatMap(
+                    ts ->
+                        ts.getPointsList().stream()
+                            .map(
+                                point ->
+                                    new WorkerCpuUtilization(
+                                        ts.getMetric().getLabelsMap().get("instance_name"),
+                                        point.getValue().getDoubleValue() * 100,
+                                        Instant.ofEpochSecond(
+                                            point.getInterval().getStartTime().getSeconds()))))
+                .toList(),
+        "Errors while trying to retrieve CPU metrics for jobid %s",
+        dataflowJobId);
+  }
+
+  public record WorkerCpuUtilization(String name, Double utilization, Instant timestamp) {}
 }

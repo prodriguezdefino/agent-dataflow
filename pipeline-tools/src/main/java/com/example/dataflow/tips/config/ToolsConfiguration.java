@@ -16,9 +16,12 @@
 package com.example.dataflow.tips.config;
 
 import com.example.dataflow.tips.mcp.server.tools.KnowledgeService;
+import com.example.dataflow.tips.mcp.server.tools.LogMessagesService;
 import com.example.dataflow.tips.mcp.server.tools.PipelineMetricsService;
 import com.example.dataflow.tips.mcp.server.tools.PipelineTopologyService;
+import com.google.cloud.monitoring.v3.MetricServiceClient;
 import com.google.dataflow.v1beta3.JobsV1Beta3Client;
+import com.google.dataflow.v1beta3.MessagesV1Beta3Client;
 import com.google.dataflow.v1beta3.MetricsV1Beta3Client;
 import java.io.IOException;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -34,9 +37,10 @@ public class ToolsConfiguration {
   public ToolCallbackProvider pipelineTopology(
       PipelineTopologyService topologyService,
       PipelineMetricsService metricsService,
-      KnowledgeService knowService) {
+      KnowledgeService knowService,
+      LogMessagesService logsService) {
     return MethodToolCallbackProvider.builder()
-        .toolObjects(topologyService, metricsService, knowService)
+        .toolObjects(topologyService, metricsService, knowService, logsService)
         .build();
   }
 
@@ -48,5 +52,15 @@ public class ToolsConfiguration {
   @Bean
   public MetricsV1Beta3Client metricsClient() throws IOException {
     return MetricsV1Beta3Client.create();
+  }
+
+  @Bean
+  public MessagesV1Beta3Client logsClient() throws IOException {
+    return MessagesV1Beta3Client.create();
+  }
+
+  @Bean
+  public MetricServiceClient gcpMetricsClient() throws IOException {
+    return MetricServiceClient.create();
   }
 }

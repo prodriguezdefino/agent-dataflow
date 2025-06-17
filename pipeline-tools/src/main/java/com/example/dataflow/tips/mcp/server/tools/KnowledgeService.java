@@ -31,13 +31,14 @@ public class KnowledgeService {
   private final Map<String, List<String>> knowledgeBase =
       Map.of(
           "PubSub",
-          List.of("A data lag of less than 60 seconds can be normal in a PubSub pipeline."));
+          List.of(
+              "A data lag of less than 60 seconds si considered normal in a PubSub reading pipeline."));
 
   private final List<String> sourceCategories = List.of("PubSub", "GCS", "BigQuery");
   private final List<String> sinkCategories = List.of("PubSub", "GCS", "BigQuery");
 
   @Tool(
-      name = "Best Practices: Source",
+      name = "Best Practices: Sources",
       description =
           "Retrieve the known best practices for the provided Apache Beam source category. "
               + "Use the 'IO Categories' tool to retrieve what best practices are available.")

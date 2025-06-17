@@ -38,7 +38,10 @@
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-dataflow</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-monitoring</artifactId>
+        </dependency>
         <!-- Spring Boot Starter Test (for testing) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
