@@ -1,0 +1,13 @@
+knowledge:
+    categories:
+        sources:
+          - PubSub
+          - GCS
+          - BigQuery
+        sinks: 
+          - GCS
+          - BigQuery
+          - PubSub
+    entries:
+        PubSub:
+            - A data lag of less than 60 seconds is considered normal in a PubSub reading pipeline. 

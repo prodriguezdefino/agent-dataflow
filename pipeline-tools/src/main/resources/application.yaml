@@ -3,6 +3,9 @@ logging:
         org.springframework.ai: INFO
         com.example.dataflow.tips.common: DEBUG
 spring:
+    config:
+        # import the knowledge base to our context
+        import: classpath:knowledge.yaml
     threads:
         virtual:
             enabled: true
