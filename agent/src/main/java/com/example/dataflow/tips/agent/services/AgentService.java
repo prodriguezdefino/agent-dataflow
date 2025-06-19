@@ -37,13 +37,13 @@ import reactor.core.scheduler.Schedulers;
  * responses.
  */
 @Service
-public class ClaudeService {
+public class AgentService {
 
   private final ChatClient.Builder chatClientBuilder;
   private final ObjectProvider<List<McpAsyncClient>> mcpClientListProvider;
   private final SystemPromptTemplate systemPrompt;
 
-  public ClaudeService(
+  public AgentService(
       ChatClient.Builder chatClientBuilder,
       ObjectProvider<List<McpAsyncClient>> mcpClientListProvider,
       SystemPromptTemplate systemPrompt) {

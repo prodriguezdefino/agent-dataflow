@@ -13,9 +13,9 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.example.dataflow.tips.mcp.server.tools;
+package com.example.dataflow.tips.tools.services;
 
-import static com.example.dataflow.tips.common.Utils.execute;
+import static com.example.dataflow.tips.tools.common.Utils.execute;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.dataflow.v1beta3.DisplayData;

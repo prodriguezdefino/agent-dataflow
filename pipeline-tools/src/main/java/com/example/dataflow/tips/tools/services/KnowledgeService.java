@@ -13,12 +13,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.example.dataflow.tips.mcp.server.tools;
+package com.example.dataflow.tips.tools.services;
 
-import static com.example.dataflow.tips.common.Utils.execute;
+import static com.example.dataflow.tips.tools.common.Utils.execute;
 
-import com.example.dataflow.tips.config.KnowledgeProperties;
-import com.example.dataflow.tips.config.KnowledgeProperties.IoCategories;
+import com.example.dataflow.tips.tools.config.KnowledgeProperties;
+import com.example.dataflow.tips.tools.config.KnowledgeProperties.IoCategories;
 import java.util.List;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;

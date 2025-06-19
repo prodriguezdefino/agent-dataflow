@@ -13,12 +13,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.example.dataflow.tips.config;
+package com.example.dataflow.tips.tools.config;
 
-import com.example.dataflow.tips.mcp.server.tools.KnowledgeService;
-import com.example.dataflow.tips.mcp.server.tools.LogMessagesService;
-import com.example.dataflow.tips.mcp.server.tools.PipelineMetricsService;
-import com.example.dataflow.tips.mcp.server.tools.PipelineTopologyService;
+import com.example.dataflow.tips.tools.services.KnowledgeService;
+import com.example.dataflow.tips.tools.services.LogMessagesService;
+import com.example.dataflow.tips.tools.services.PipelineMetricsService;
+import com.example.dataflow.tips.tools.services.PipelineTopologyService;
 import com.google.cloud.monitoring.v3.MetricServiceClient;
 import com.google.dataflow.v1beta3.JobsV1Beta3Client;
 import com.google.dataflow.v1beta3.MessagesV1Beta3Client;

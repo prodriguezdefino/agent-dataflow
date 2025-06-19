@@ -20,8 +20,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /** */
 @SpringBootApplication
-public class AgentApp {
+public class DataflowAgentApp {
   public static void main(String[] args) {
-    SpringApplication.run(AgentApp.class, args);
+    SpringApplication.run(DataflowAgentApp.class, args);
   }
 }

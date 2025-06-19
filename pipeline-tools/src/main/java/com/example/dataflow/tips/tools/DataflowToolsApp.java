@@ -13,16 +13,16 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.example.dataflow.tips;
+package com.example.dataflow.tips.tools;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /** */
 @SpringBootApplication
-public class DataflowToolsServer {
+public class DataflowToolsApp {
 
   public static void main(String[] args) {
-    SpringApplication.run(DataflowToolsServer.class, args);
+    SpringApplication.run(DataflowToolsApp.class, args);
   }
 }

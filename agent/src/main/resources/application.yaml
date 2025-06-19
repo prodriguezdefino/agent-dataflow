@@ -26,7 +26,6 @@ spring:
               read-timeout: 20s
               connect-timeout: 5s
               response-timeout: 120s
-    # Claude API Configuration
     ai:
         retry:
             max-attempts: 5

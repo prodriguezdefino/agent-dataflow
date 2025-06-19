@@ -13,9 +13,9 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.example.dataflow.tips.mcp.server.tools;
+package com.example.dataflow.tips.tools.services;
 
-import com.example.dataflow.tips.common.Utils;
+import com.example.dataflow.tips.tools.common.Utils;
 import com.google.dataflow.v1beta3.JobMessage;
 import com.google.dataflow.v1beta3.JobMessageImportance;
 import com.google.dataflow.v1beta3.ListJobMessagesRequest;

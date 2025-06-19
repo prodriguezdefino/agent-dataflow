@@ -28,10 +28,10 @@ import reactor.core.publisher.Mono;
 @Service
 public class AgentResource {
 
-  private final ClaudeService claude;
+  private final AgentService agent;
 
-  public AgentResource(ClaudeService claude) {
-    this.claude = claude;
+  public AgentResource(AgentService agent) {
+    this.agent = agent;
   }
 
   public Mono<ServerResponse> interaction(ServerRequest request) {
@@ -39,7 +39,7 @@ public class AgentResource {
         .bodyToMono(Request.class)
         .flatMap(
             body ->
-                claude
+                agent
                     .generate(body.q(), List.of())
                     .collectList()
                     .flatMap(
